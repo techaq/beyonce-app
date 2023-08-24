@@ -1,49 +1,52 @@
 import React, { useState, useEffect } from "react";
-import "./index.css";
-import Header from "./components/Header";
-import TrackList from "./components/TrackList";
-import Footer from "./components/Footer";
 
-export default function MusicApp() {
-  const apiKey = process.env.REACT_APP_API_KEY;
-
-  const artist = "beyonce"; // Artist name for the API request
-  const url = `http://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=${artist}&api_key=${apiKey}&format=json`;
-
-  const [tracks, setTracks] = useState([]);
-
-  const getTracks = async () => {
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-      if (data.toptracks && data.toptracks.track) {
-        setTracks(data.toptracks.track);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
+function MusicApp() {
+  const [artistName, setArtistName] = useState("");
+  const [trackData, setTrackData] = useState([]);
 
   useEffect(() => {
-    getTracks();
-  }, []);
+    if (artistName.trim() !== "") {
+      fetch(
+        `http://ws.audioscrobbler.com/2.0/?method=artist.getInfo&artist=${artistName}&api_key=YOUR_API_KEY&format=json`
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          if (
+            data.results &&
+            data.results.artistmatches &&
+            data.results.artistmatches.artist
+          ) {
+            const artist = data.results.artistmatches.artist[0];
+            fetch(
+              `http://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=${artist.name}&api_key=YOUR_API_KEY&format=json`
+            )
+              .then((response) => response.json())
+              .then((data) => setTrackData(data.toptracks.track))
+              .catch((error) => console.error("Error fetching data:", error));
+          }
+        })
+        .catch((error) => console.error("Error fetching data:", error));
+    }
+  }, [artistName]);
 
-  const loaded = () => {
-    return (
-      <div>
-        <h1>Beyoncé's Top Tracks</h1>
-        <ul>
-          {tracks.map((track, index) => (
-            <li key={index}>{track.name}</li>
-          ))}
-        </ul>
+  return (
+    <div className="music-app">
+      <h1>Artist Top Tracks</h1>
+      <div className="search-container">
+        <input
+          type="text"
+          placeholder="Enter artist name"
+          value={artistName}
+          onChange={(e) => setArtistName(e.target.value)}
+        />
       </div>
-    );
-  };
-
-  const loading = () => {
-    return <h1>Loading...</h1>;
-  };
-
-  return tracks.length > 0 ? loaded() : loading();
+      <ul className="track-list">
+        {trackData.map((track, index) => (
+          <li key={index}>{track.name}</li>
+        ))}
+      </ul>
+    </div>
+  );
 }
+
+export default MusicApp;
