@@ -17,7 +17,7 @@ function MusicApp() {
   // Function to fetch top tracks for the selected artist
   const fetchTopTracks = (artistName) => {
     fetch(
-      `http://ws.audioscrobbler.com/2.0/?method=artist.getTopTracks&artist=${artistName}&api_key=5c4af263893f04cb0df26a7aebf93dcb&format=json`
+      `https://ws.audioscrobbler.com/2.0/?method=artist.getTopTracks&artist=${artistName}&api_key=5c4af263893f04cb0df26a7aebf93dcb&format=json`
     )
       .then((response) => response.json())
       .then((data) => {
@@ -30,7 +30,7 @@ function MusicApp() {
   useEffect(() => {
     if (searching) {
       fetch(
-        `http://ws.audioscrobbler.com/2.0/?method=artist.search&artist=${artistName}&api_key=5c4af263893f04cb0df26a7aebf93dcb&format=json`
+        `https://ws.audioscrobbler.com/2.0/?method=artist.search&artist=${artistName}&api_key=5c4af263893f04cb0df26a7aebf93dcb&format=json`
       )
         .then((response) => response.json())
         .then((data) => {
