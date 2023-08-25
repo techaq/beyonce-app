@@ -2,12 +2,31 @@ import React, { useState, useEffect } from "react";
 
 function MusicApp() {
   const [artistName, setArtistName] = useState("");
+  const [artistOptions, setArtistOptions] = useState([]);
   const [trackData, setTrackData] = useState([]);
+  const [searching, setSearching] = useState(false);
+
+  const handleSearchClick = () => {
+    if (artistName.trim() !== "") {
+      setSearching(true);
+    }
+  };
+
+  const fetchTopTracks = (artistName) => {
+    fetch(
+      `http://ws.audioscrobbler.com/2.0/?method=artist.getTopTracks&artist=${artistName}&api_key=5c4af263893f04cb0df26a7aebf93dcb&format=json`
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        setTrackData(data.toptracks.track);
+      })
+      .catch((error) => console.error("Error fetching top tracks:", error));
+  };
 
   useEffect(() => {
-    if (artistName.trim() !== "") {
+    if (searching) {
       fetch(
-        `http://ws.audioscrobbler.com/2.0/?method=artist.getInfo&artist=${artistName}&api_key=YOUR_API_KEY&format=json`
+        `http://ws.audioscrobbler.com/2.0/?method=artist.search&artist=${artistName}&api_key=5c4af263893f04cb0df26a7aebf93dcb&format=json`
       )
         .then((response) => response.json())
         .then((data) => {
@@ -16,35 +35,67 @@ function MusicApp() {
             data.results.artistmatches &&
             data.results.artistmatches.artist
           ) {
-            const artist = data.results.artistmatches.artist[0];
-            fetch(
-              `http://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=${artist.name}&api_key=YOUR_API_KEY&format=json`
-            )
-              .then((response) => response.json())
-              .then((data) => setTrackData(data.toptracks.track))
-              .catch((error) => console.error("Error fetching data:", error));
+            setArtistOptions(data.results.artistmatches.artist);
+          } else {
+            setArtistOptions([]);
           }
         })
-        .catch((error) => console.error("Error fetching data:", error));
+        .catch((error) => console.error("Error fetching data:", error))
+        .finally(() => {
+          setSearching(false);
+        });
     }
-  }, [artistName]);
+  }, [searching, artistName]);
 
   return (
     <div className="music-app">
       <h1>Artist Top Tracks</h1>
       <div className="search-container">
-        <input
-          type="text"
-          placeholder="Enter artist name"
-          value={artistName}
-          onChange={(e) => setArtistName(e.target.value)}
-        />
+        <div className="artist-dropdown">
+          <input
+            type="text"
+            placeholder="Enter artist name"
+            value={artistName}
+            onChange={(e) => {
+              setArtistName(e.target.value);
+              setArtistOptions([]); // Clear artist options when typing
+            }}
+          />
+          {artistOptions.length > 0 && !searching && (
+            <ul className="artist-options">
+              {artistOptions.map((artist, index) => (
+                <li
+                  key={index}
+                  onClick={() => {
+                    setArtistName(artist.name);
+                    setArtistOptions([]);
+                    fetchTopTracks(artist.name);
+                  }}
+                >
+                  {artist.name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <button onClick={handleSearchClick}>Search</button>
       </div>
-      <ul className="track-list">
-        {trackData.map((track, index) => (
-          <li key={index}>{track.name}</li>
-        ))}
-      </ul>
+      {trackData.length > 0 ? (
+        <div>
+          <h2>Top Tracks for {artistName}</h2>
+          <ul className="track-list">
+            {trackData.map((track, index) => (
+              <li key={index}>{track.name}</li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <p>
+          {searching
+            ? "Searching..."
+            : "No top tracks available for this artist."}
+        </p>
+      )}
     </div>
   );
 }
