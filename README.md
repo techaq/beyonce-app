@@ -1,4 +1,4 @@
-Artist Top Tracks Web App
+Artist Top Tracks App
 This is a simple web application built using React that allows users to search for an artist and view their top tracks. It utilizes the Last.fm API to fetch artist information and top tracks.
 
 Features
@@ -19,6 +19,3 @@ Technologies Used
 React: A JavaScript library for building user interfaces.
 Last.fm API: Used to fetch artist information and top tracks.
 CSS: Styling for the user interface.
-
-Credits
-This app was developed by Fatimah.
